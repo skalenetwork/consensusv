@@ -10,12 +10,19 @@ void init(void)
     glShadeModel(GL_FLAT);
 }
 
+
+float NODE_WIDTH = 2.0;
+void drawNode(float _centerX, float _centerY) {
+    glRectf(_centerX - NODE_WIDTH / 2, _centerY - NODE_WIDTH / 2,
+            _centerX + NODE_WIDTH / 2, _centerY + NODE_WIDTH / 2);
+}
+
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT);
     glPushMatrix();
     glRotatef(spin, 0.0, 0.0, 1.0);
     glColor3f(1.0, 1.0, 1.0);
-    glRectf(-25.0, -25.0, 25.0, 25.0);
+    drawNode(-25.0, -25.0);
     glPopMatrix();
     glutSwapBuffers();
 }
