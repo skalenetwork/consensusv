@@ -1,5 +1,7 @@
 #include <GL/glut.h>
-   
+#include <math.h>       /* cos */
+#define PI 3.14159265
+
 static GLfloat spin = 0.0;
    
 
@@ -12,9 +14,28 @@ void init(void)
 
 
 float NODE_WIDTH = 2.0;
+float RADIUS = 20.0;
+uint64_t NODE_COUNT = 16;
+
+
+
 void drawNode(float _centerX, float _centerY) {
     glRectf(_centerX - NODE_WIDTH / 2, _centerY - NODE_WIDTH / 2,
             _centerX + NODE_WIDTH / 2, _centerY + NODE_WIDTH / 2);
+}
+
+
+void drawNodeN(uint64_t _n) {
+    auto angle = _n* (2 * PI / NODE_COUNT);
+    auto x = RADIUS * cos (angle);
+    auto y = RADIUS * sin (angle);
+    drawNode(x,y);
+}
+
+void drawNodes() {
+    for (uint64_t i = 0; i < NODE_COUNT; i++) {
+        drawNodeN(i);
+    }
 }
 
 void display(void) {
@@ -22,7 +43,7 @@ void display(void) {
     glPushMatrix();
     glRotatef(spin, 0.0, 0.0, 1.0);
     glColor3f(1.0, 1.0, 1.0);
-    drawNode(-25.0, -25.0);
+    drawNodes();
     glPopMatrix();
     glutSwapBuffers();
 }
