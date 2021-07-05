@@ -33,17 +33,29 @@ void drawNodeN(uint64_t _n) {
 }
 
 void drawNodes() {
+    glColor3f(0, 0, 1.0);
     for (uint64_t i = 0; i < NODE_COUNT; i++) {
         drawNodeN(i);
     }
+}
+
+void drawMessages() {
+    glColor3f(1, 1, 0);
+}
+
+void drawBlocks() {
+    glColor3f(0, 1, 0);
 }
 
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT);
     glPushMatrix();
     glRotatef(spin, 0.0, 0.0, 1.0);
-    glColor3f(1.0, 1.0, 1.0);
     drawNodes();
+
+    drawMessages();
+
+    drawBlocks();
     glPopMatrix();
     glutSwapBuffers();
 }
