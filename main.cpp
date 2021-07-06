@@ -34,6 +34,14 @@ public:
 
 class Message {
 public:
+    Message(uint64_t _type, uint64_t _start, uint64_t _end, uint64_t _source,
+            uint64_t _destination) : type(_type),
+                                                                                                    start(start),
+                                                                                                    end(_end),
+                                                                                                    source(source),
+                                                                                                    destination(
+                                                                                                            destination) {}
+
     uint64_t getType() const {
         return type;
     }
@@ -42,7 +50,7 @@ public:
         return start;
     }
 
-    uint64_t getAnEnd() const {
+    uint64_t getEnd() const {
         return end;
     }
 
@@ -65,10 +73,12 @@ private:
 
 class Consensusv {
 
+public:
+
     static map<uint64_t, Message> allMessages;
     static map<uint64_t, Message> displayedMessages;
 
-public:
+
 
     static void init(void) {
         glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -184,6 +194,9 @@ public:
 
 
 int main(int argc, char **argv) {
+
+    Consensusv::displayedMessages.insert({0, Message(0, 0, 0, 1, 2)});
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(250, 250);
