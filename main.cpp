@@ -6,7 +6,55 @@ using namespace std;
 
 static GLfloat spin = 0.0;
 
+class Coordinate {
+public:
+    Coordinate(float x, float y) : x(x), y(y) {}
+
+
+    float getX() const {
+        return x;
+    }
+
+    float getY() const {
+        return y;
+    }
+
+private:
+    float x;
+    float y;
+
+public:
+
+    static Coordinate computeInternalPoint(Coordinate& _c1, Coordinate& _c2, float _proportion) {
+        auto x = _c1.getX() + (_c2.getX() - _c1.getX()) * _proportion;
+        auto y = _c1.getY() + (_c2.getY() - _c1.getY()) * _proportion;
+        return Coordinate(x,y);
+    }
+};
+
 class Message {
+public:
+    uint64_t getType() const {
+        return type;
+    }
+
+    uint64_t getStart() const {
+        return start;
+    }
+
+    uint64_t getAnEnd() const {
+        return end;
+    }
+
+    uint64_t getSource() const {
+        return source;
+    }
+
+    uint64_t getDestination() const {
+        return destination;
+    }
+
+private:
     uint64_t type;
     uint64_t start;
     uint64_t end;
@@ -29,21 +77,28 @@ public:
 
 
     static constexpr float NODE_WIDTH = 2.0;
+    static constexpr float MSG_WIDTH = 1.0;
     static constexpr float RADIUS = 20.0;
     static constexpr uint64_t NODE_COUNT = 16;
 
 
-    static void drawNode(float _centerX, float _centerY) {
-        glRectf(_centerX - NODE_WIDTH / 2, _centerY - NODE_WIDTH / 2,
-                _centerX + NODE_WIDTH / 2, _centerY + NODE_WIDTH / 2);
+    static void drawNode(Coordinate& _c) {
+        glRectf(_c.getX() - NODE_WIDTH / 2, _c.getY() - NODE_WIDTH / 2,
+                _c.getX() + NODE_WIDTH / 2, _c.getY() + NODE_WIDTH / 2);
+    }
+
+
+    static Coordinate computeNodeCoordinate(uint64_t _n) {
+        auto angle = _n * (2 * PI / NODE_COUNT);
+        auto x = RADIUS * cos(angle);
+        auto y = RADIUS * sin(angle);
+        return Coordinate(x,y);
     }
 
 
     static void drawNodeN(uint64_t _n) {
-        auto angle = _n * (2 * PI / NODE_COUNT);
-        auto x = RADIUS * cos(angle);
-        auto y = RADIUS * sin(angle);
-        drawNode(x, y);
+        auto c = computeNodeCoordinate(_n);
+        drawNode(c);
     }
 
     static void drawNodes() {
@@ -54,6 +109,17 @@ public:
     }
 
     static void drawMessage(const Message &_message) {
+        auto src = _message.getSource();
+        auto dst = _message.getDestination();
+
+        auto srcCoordinate = computeNodeCoordinate(src);
+        auto dstCoordinate = computeNodeCoordinate(dst);
+        auto msgCoordinate = Coordinate::computeInternalPoint(srcCoordinate, dstCoordinate,
+                                                              0.5);
+
+        glRectf(msgCoordinate.getX() - MSG_WIDTH / 2, msgCoordinate.getY() - MSG_WIDTH / 2,
+                msgCoordinate.getX() + MSG_WIDTH / 2, msgCoordinate.getY() + MSG_WIDTH / 2);
+
     }
 
 
