@@ -1,7 +1,8 @@
 #include <GL/glut.h>
 #include <math.h>       /* cos */
 #include <map>
-
+#include <list>
+#include <iostream>
 
 #include <chrono>
 
@@ -9,6 +10,8 @@
 using namespace std;
 
 static GLfloat spin = 0.0;
+
+enum MessageType {PROPOSAL = 0, BROADCAST = 1, AUX = 2};
 
 class Coordinate {
 public:
@@ -38,15 +41,15 @@ public:
 
 class Message {
 public:
-    Message(uint64_t _type, uint64_t _start, uint64_t _end, uint64_t _source,
-            uint64_t _destination) : type(_type),
+
+
+    Message(MessageType type, uint64_t start, uint64_t anEnd, uint64_t source, uint64_t destination) : type(type),
                                                                                                     start(start),
-                                                                                                    end(_end),
+                                                                                                    end(anEnd),
                                                                                                     source(source),
                                                                                                     destination(
                                                                                                             destination) {}
-
-    uint64_t getType() const {
+    MessageType getType() const {
         return type;
     }
 
@@ -67,7 +70,7 @@ public:
     }
 
 private:
-    uint64_t type;
+    MessageType type;
     uint64_t start;
     uint64_t end;
     uint64_t source;
@@ -80,7 +83,7 @@ class Consensusv {
 public:
 
     static map<uint64_t, Message> allMessages;
-    static map<uint64_t, Message> displayedMessages;
+    static list<Message> displayedMessages;
 
     static uint64_t  startTime;
 
@@ -100,6 +103,10 @@ public:
 
     static constexpr float NODE_WIDTH = 2.0;
     static constexpr float MSG_WIDTH = 1.0;
+    static constexpr float BLOCK_WIDTH = 4.0;
+    static constexpr float BLOCK_HEIGHT = 2.0;
+
+
     static constexpr float RADIUS = 20.0;
     static constexpr uint64_t NODE_COUNT = 16;
 
@@ -130,34 +137,50 @@ public:
         }
     }
 
-    static void drawMessage(const Message &_message, uint64_t _currentTime) {
+    static void drawMessage(const Message &_message, float _currentTime) {
         auto src = _message.getSource();
         auto dst = _message.getDestination();
 
-        if (_currentTime < _message.getStart())
+        auto start = _message.getStart();
+
+        if (_currentTime < start)
             return;
         if (_currentTime > _message.getEnd())
             return;
 
+
         auto proportion = (_currentTime - _message.getStart()) / (_message.getEnd()
-                - _message.getStart());
+                                                                  - _message.getStart());
 
         auto srcCoordinate = computeNodeCoordinate(src);
         auto dstCoordinate = computeNodeCoordinate(dst);
+
         auto msgCoordinate = Coordinate::computeInternalPoint(srcCoordinate, dstCoordinate,
                                                               proportion);
 
-        glRectf(msgCoordinate.getX() - MSG_WIDTH / 2, msgCoordinate.getY() - MSG_WIDTH / 2,
-                msgCoordinate.getX() + MSG_WIDTH / 2, msgCoordinate.getY() + MSG_WIDTH / 2);
+        float width;
+        float height;
+
+        if (_message.getType() == PROPOSAL) {
+            width = BLOCK_WIDTH;
+            height = BLOCK_HEIGHT;
+        } else {
+            width = MSG_WIDTH;
+            height = MSG_WIDTH;
+        }
+
+
+        glRectf(msgCoordinate.getX() - width / 2, msgCoordinate.getY() - height / 2,
+                msgCoordinate.getX() + width / 2, msgCoordinate.getY() + height / 2);
 
     }
 
 
-    static void drawMessages(uint64_t _currentTime) {
+    static void drawMessages(float _currentTime) {
         glColor3f(1, 1, 0);
 
         for (auto &&item : displayedMessages) {
-            drawMessage(item.second, _currentTime);
+            drawMessage(item, _currentTime);
         }
     }
 
@@ -167,15 +190,15 @@ public:
     }
 
     static void display(void) {
-        glClear(GL_COLOR_BUFFER_BIT);
-        glPushMatrix();
-        glRotatef(spin, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT |GL_DEPTH_BUFFER_BIT);
+        //glPushMatrix();
+        //glRotatef(spin, 0.0, 0.0, 1.0);
         drawNodes();
 
         drawMessages(getCurrentTimeMs() - startTime);
 
         drawBlocks();
-        glPopMatrix();
+        //glPopMatrix();
         glutSwapBuffers();
     }
 
@@ -189,9 +212,6 @@ public:
     }
 
     static void spinDisplay(void) {
-        spin = spin + 2.0;
-        if (spin > 360.0)
-            spin = spin - 360.0;
         glutPostRedisplay();
     }
 
@@ -215,7 +235,8 @@ public:
 
 int main(int argc, char **argv) {
 
-    Consensusv::displayedMessages.insert({0, Message(0, 1, 10000, 1, 2)});
+    Consensusv::displayedMessages.push_back(Message(BROADCAST, 1, 10000, 1, 4));
+    Consensusv::displayedMessages.push_back(Message(PROPOSAL, 1, 10000, 7, 5));
 
     Consensusv::startTime = Consensusv::getCurrentTimeMs();
 
@@ -233,5 +254,5 @@ int main(int argc, char **argv) {
 }
 
 map<uint64_t, Message> Consensusv::allMessages;
-map<uint64_t, Message> Consensusv::displayedMessages;
+list<Message> Consensusv::displayedMessages;
 uint64_t Consensusv::startTime = 0;
