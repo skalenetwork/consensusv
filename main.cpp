@@ -11,7 +11,7 @@ using namespace std;
 
 static GLfloat spin = 0.0;
 
-enum MessageType {PROPOSAL = 0, BROADCAST = 1, AUX = 2};
+enum MessageType {PROPOSAL = 0, BROADCAST = 1, AUX = 2, SIG = 3};
 
 class Coordinate {
 public:
