@@ -1,6 +1,10 @@
 #include <GL/glut.h>
 #include <math.h>       /* cos */
 #include <map>
+
+
+#include <chrono>
+
 #define PI 3.14159265
 using namespace std;
 
@@ -78,6 +82,14 @@ public:
     static map<uint64_t, Message> allMessages;
     static map<uint64_t, Message> displayedMessages;
 
+    static uint64_t  startTime;
+
+
+    static uint64_t getCurrentTimeMs() {
+        uint64_t result = chrono::duration_cast<chrono::milliseconds>(
+                chrono::system_clock::now().time_since_epoch()).count();
+        return result;
+    }
 
 
     static void init(void) {
@@ -118,14 +130,22 @@ public:
         }
     }
 
-    static void drawMessage(const Message &_message) {
+    static void drawMessage(const Message &_message, uint64_t _currentTime) {
         auto src = _message.getSource();
         auto dst = _message.getDestination();
+
+        if (_currentTime < _message.getStart())
+            return;
+        if (_currentTime > _message.getEnd())
+            return;
+
+        auto proportion = (_currentTime - _message.getStart()) / (_message.getEnd()
+                - _message.getStart());
 
         auto srcCoordinate = computeNodeCoordinate(src);
         auto dstCoordinate = computeNodeCoordinate(dst);
         auto msgCoordinate = Coordinate::computeInternalPoint(srcCoordinate, dstCoordinate,
-                                                              0.5);
+                                                              proportion);
 
         glRectf(msgCoordinate.getX() - MSG_WIDTH / 2, msgCoordinate.getY() - MSG_WIDTH / 2,
                 msgCoordinate.getX() + MSG_WIDTH / 2, msgCoordinate.getY() + MSG_WIDTH / 2);
@@ -133,11 +153,11 @@ public:
     }
 
 
-    static void drawMessages() {
+    static void drawMessages(uint64_t _currentTime) {
         glColor3f(1, 1, 0);
 
         for (auto &&item : displayedMessages) {
-            drawMessage(item.second);
+            drawMessage(item.second, _currentTime);
         }
     }
 
@@ -152,7 +172,7 @@ public:
         glRotatef(spin, 0.0, 0.0, 1.0);
         drawNodes();
 
-        drawMessages();
+        drawMessages(getCurrentTimeMs() - startTime);
 
         drawBlocks();
         glPopMatrix();
@@ -195,7 +215,9 @@ public:
 
 int main(int argc, char **argv) {
 
-    Consensusv::displayedMessages.insert({0, Message(0, 0, 0, 1, 2)});
+    Consensusv::displayedMessages.insert({0, Message(0, 1, 10000, 1, 2)});
+
+    Consensusv::startTime = Consensusv::getCurrentTimeMs();
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
@@ -212,4 +234,4 @@ int main(int argc, char **argv) {
 
 map<uint64_t, Message> Consensusv::allMessages;
 map<uint64_t, Message> Consensusv::displayedMessages;
-
+uint64_t Consensusv::startTime = 0;
