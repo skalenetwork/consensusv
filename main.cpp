@@ -1,7 +1,7 @@
 #include <GL/glut.h>
 #include <math.h>       /* cos */
 #include <map>
-#include <vector>
+#include <list>
 #include <list>
 #include <iostream>
 #include <bits/stdc++.h>
@@ -109,10 +109,10 @@ class Consensusv {
 
 public:
 
-    static vector<Message> allMessages;
+    static list<Message> allMessages;
     static list<Message> displayedMessages;
 
-    static vector<Block> allBlocks;
+    static list<Block> allBlocks;
     static list<Block> displayedBlocks;
 
     static uint64_t  startTime;
@@ -268,11 +268,16 @@ public:
         glClear(GL_COLOR_BUFFER_BIT |GL_DEPTH_BUFFER_BIT);
         //glPushMatrix();
         //glRotatef(spin, 0.0, 0.0, 1.0);
+
+        auto time = getCurrentTimeMs() - startTime;
+
+        moveMessagesAndBlocksToDisplay(time);
+
         drawNodes();
 
-        drawMessages(getCurrentTimeMs() - startTime);
+        drawMessages(time);
 
-        drawBlocks(getCurrentTimeMs() - startTime);
+        drawBlocks(time);
         //glPopMatrix();
         glutSwapBuffers();
     }
@@ -305,15 +310,25 @@ public:
                 break;
         }
     }
+
+
+    static void moveMessagesAndBlocksToDisplay(float _time) {
+        while (allMessages.size() > 0 && allMessages.front().getStart() <= _time) {
+            auto msg = allMessages.front();
+            allMessages.pop_front();
+            displayedMessages.push_back(msg);
+            auto block = allBlocks.front();
+            allBlocks.pop_front();
+            displayedBlocks.push_back(block);
+        }
+    }
+
 };
+
 
 
 int main(int argc, char **argv) {
 
-    Consensusv::displayedMessages.push_back(Message(BROADCAST, 1, 10000, 1, 4));
-    Consensusv::displayedMessages.push_back(Message(PROPOSAL, 1, 10000, 7, 5));
-    Consensusv::displayedBlocks.push_back(Block(1, 1, 1));
-    Consensusv::displayedBlocks.push_back(Block(1, 1, 2));
 
 
     Consensusv::allMessages.push_back(Message(BROADCAST, 1, 10000, 1, 4));
@@ -322,13 +337,8 @@ int main(int argc, char **argv) {
     Consensusv::allBlocks.push_back(Block(1, 1, 2));
 
 
-    std::sort(Consensusv::allBlocks.begin(),
-              Consensusv::allBlocks.end(),
-              Consensusv::compareBlocks);
-
-    std::sort(Consensusv::allMessages.begin(),
-              Consensusv::allMessages.end(),
-               Consensusv::compareMessages);
+    Consensusv::allBlocks.sort(Consensusv::compareBlocks);
+    Consensusv::allMessages.sort(Consensusv::compareMessages);
 
     Consensusv::startTime = Consensusv::getCurrentTimeMs();
 
@@ -345,10 +355,10 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-vector<Message> Consensusv::allMessages;
+list<Message> Consensusv::allMessages;
 list<Message> Consensusv::displayedMessages;
 
-vector<Block> Consensusv::allBlocks;
+list<Block> Consensusv::allBlocks;
 list<Block> Consensusv::displayedBlocks;
 
 
