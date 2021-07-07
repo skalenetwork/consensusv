@@ -1,6 +1,7 @@
 #include <GL/glut.h>
 #include <math.h>       /* cos */
 #include <map>
+#include <vector>
 #include <list>
 #include <iostream>
 
@@ -107,10 +108,10 @@ class Consensusv {
 
 public:
 
-    static list<Message> allMessages;
+    static vector<Message> allMessages;
     static list<Message> displayedMessages;
 
-    static list<Block> allBlocks;
+    static vector<Block> allBlocks;
     static list<Block> displayedBlocks;
 
     static uint64_t  startTime;
@@ -322,10 +323,10 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-list<Message> Consensusv::allMessages;
+vector<Message> Consensusv::allMessages;
 list<Message> Consensusv::displayedMessages;
 
-list<Block> Consensusv::allBlocks;
+vector<Block> Consensusv::allBlocks;
 list<Block> Consensusv::displayedBlocks;
 
 
