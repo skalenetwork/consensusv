@@ -107,10 +107,10 @@ class Consensusv {
 
 public:
 
-    static map<uint64_t, Message> allMessages;
+    static list<Message> allMessages;
     static list<Message> displayedMessages;
 
-    static map<uint64_t, Block> allBlocks;
+    static list<Block> allBlocks;
     static list<Block> displayedBlocks;
 
     static uint64_t  startTime;
@@ -322,10 +322,10 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-map<uint64_t, Message> Consensusv::allMessages;
+list<Message> Consensusv::allMessages;
 list<Message> Consensusv::displayedMessages;
 
-map<uint64_t, Block> Consensusv::allBlocks;
+list<Block> Consensusv::allBlocks;
 list<Block> Consensusv::displayedBlocks;
 
 
