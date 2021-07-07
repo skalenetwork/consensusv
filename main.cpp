@@ -11,7 +11,7 @@ using namespace std;
 
 static GLfloat spin = 0.0;
 
-enum MessageType {PROPOSAL = 0, BROADCAST = 1, AUX = 2, SIG = 3};
+enum MessageType {PROPOSAL = 0, BROADCAST = 1, AUX = 2, SIG = 3, BLOCK = 4};
 
 class Coordinate {
 public:
@@ -46,8 +46,7 @@ public:
     Message(MessageType type, uint64_t start, uint64_t anEnd, uint64_t source, uint64_t destination) : type(type),
                                                                                                     start(start),
                                                                                                     end(anEnd),
-                                                                                                    source(source),
-                                                                                                    destination(
+                                                                                                    source(source),destination(
                                                                                                             destination) {}
     MessageType getType() const {
         return type;
@@ -78,12 +77,41 @@ private:
 };
 
 
+class Block {
+public:
+
+
+    uint64_t getStart() const {
+        return start;
+    }
+
+    uint64_t getNode() const {
+        return node;
+    }
+
+    uint64_t getId() const {
+        return id;
+    }
+
+    Block(uint64_t start, uint64_t node, uint64_t id) : start(start), node(node), id(id) {}
+
+private:
+    uint64_t start;
+    uint64_t node;
+    uint64_t id;
+};
+
+
+
 class Consensusv {
 
 public:
 
     static map<uint64_t, Message> allMessages;
     static list<Message> displayedMessages;
+
+    static map<uint64_t, Block> allBlocks;
+    static list<Block> displayedBlocks;
 
     static uint64_t  startTime;
 
@@ -107,7 +135,7 @@ public:
     static constexpr float BLOCK_HEIGHT = 2.0;
 
 
-    static constexpr float RADIUS = 20.0;
+    static constexpr float RADIUS = 30.0;
     static constexpr uint64_t NODE_COUNT = 16;
 
 
@@ -169,11 +197,45 @@ public:
             height = MSG_WIDTH;
         }
 
-
         glRectf(msgCoordinate.getX() - width / 2, msgCoordinate.getY() - height / 2,
                 msgCoordinate.getX() + width / 2, msgCoordinate.getY() + height / 2);
 
     }
+
+
+    static void drawBlock(const Block &_block, float _currentTime) {
+
+
+        auto node = _block.getStart();
+        auto id = _block.getId();
+
+
+
+        auto start = _block.getStart();
+
+        if (_currentTime < start)
+            return;
+
+
+        auto nodeCoordinate = computeNodeCoordinate(node);
+        auto oppositeNodeCoordinate = computeNodeCoordinate((node + NODE_COUNT / 2) % 16);
+
+        auto blockCoordinate = Coordinate::computeInternalPoint(
+                nodeCoordinate, oppositeNodeCoordinate, - 0.07);
+
+        float width = BLOCK_WIDTH;
+        float height = BLOCK_HEIGHT;
+
+        cerr << height / 2 << endl;
+
+        glRectf(blockCoordinate.getX() - width / 2, blockCoordinate.getY()
+         + id * (height + 0.1) - height / 2,
+                blockCoordinate.getX() + width / 2, blockCoordinate.getY() +
+                        + id * (height + 0.1) + height / 2);
+    }
+
+
+
 
 
     static void drawMessages(float _currentTime) {
@@ -185,8 +247,12 @@ public:
     }
 
 
-    static void drawBlocks() {
-        glColor3f(0, 1, 0);
+    static void drawBlocks(float _currentTime) {
+        glColor3f(1, 1, 0);
+
+        for (auto &&item : displayedBlocks) {
+            drawBlock(item, _currentTime);
+        }
     }
 
     static void display(void) {
@@ -197,7 +263,7 @@ public:
 
         drawMessages(getCurrentTimeMs() - startTime);
 
-        drawBlocks();
+        drawBlocks(getCurrentTimeMs() - startTime);
         //glPopMatrix();
         glutSwapBuffers();
     }
@@ -237,6 +303,9 @@ int main(int argc, char **argv) {
 
     Consensusv::displayedMessages.push_back(Message(BROADCAST, 1, 10000, 1, 4));
     Consensusv::displayedMessages.push_back(Message(PROPOSAL, 1, 10000, 7, 5));
+    Consensusv::displayedBlocks.push_back(Block(1, 1, 1));
+    Consensusv::displayedBlocks.push_back(Block(1, 1, 2));
+
 
     Consensusv::startTime = Consensusv::getCurrentTimeMs();
 
@@ -255,4 +324,9 @@ int main(int argc, char **argv) {
 
 map<uint64_t, Message> Consensusv::allMessages;
 list<Message> Consensusv::displayedMessages;
+
+map<uint64_t, Block> Consensusv::allBlocks;
+list<Block> Consensusv::displayedBlocks;
+
+
 uint64_t Consensusv::startTime = 0;
