@@ -4,6 +4,7 @@
 #include <vector>
 #include <list>
 #include <iostream>
+#include <bits/stdc++.h>
 
 #include <chrono>
 
@@ -116,6 +117,15 @@ public:
 
     static uint64_t  startTime;
 
+    static bool compareMessages(Message m1, Message m2) {
+        return (m1.getStart() < m2.getStart());
+    }
+
+    static bool compareBlocks(Block b1, Block b2) {
+        return (b1.getStart() < b2.getStart());
+    }
+
+
 
     static uint64_t getCurrentTimeMs() {
         uint64_t result = chrono::duration_cast<chrono::milliseconds>(
@@ -227,8 +237,6 @@ public:
         float width = BLOCK_WIDTH;
         float height = BLOCK_HEIGHT;
 
-        cerr << height / 2 << endl;
-
         glRectf(blockCoordinate.getX() - width / 2, blockCoordinate.getY()
          + id * (height + 0.1) - height / 2,
                 blockCoordinate.getX() + width / 2, blockCoordinate.getY() +
@@ -306,6 +314,15 @@ int main(int argc, char **argv) {
     Consensusv::displayedMessages.push_back(Message(PROPOSAL, 1, 10000, 7, 5));
     Consensusv::displayedBlocks.push_back(Block(1, 1, 1));
     Consensusv::displayedBlocks.push_back(Block(1, 1, 2));
+
+    std::sort(Consensusv::allBlocks.begin(),
+              Consensusv::allBlocks.end(),
+              Consensusv::compareBlocks);
+
+    std::sort(Consensusv::allMessages.begin(),
+              Consensusv::allMessages.end(),
+               Consensusv::compareMessages);
+
 
 
     Consensusv::startTime = Consensusv::getCurrentTimeMs();
