@@ -315,6 +315,13 @@ int main(int argc, char **argv) {
     Consensusv::displayedBlocks.push_back(Block(1, 1, 1));
     Consensusv::displayedBlocks.push_back(Block(1, 1, 2));
 
+
+    Consensusv::allMessages.push_back(Message(BROADCAST, 1, 10000, 1, 4));
+    Consensusv::allMessages.push_back(Message(PROPOSAL, 1, 10000, 7, 5));
+    Consensusv::allBlocks.push_back(Block(1, 1, 1));
+    Consensusv::allBlocks.push_back(Block(1, 1, 2));
+
+
     std::sort(Consensusv::allBlocks.begin(),
               Consensusv::allBlocks.end(),
               Consensusv::compareBlocks);
@@ -322,8 +329,6 @@ int main(int argc, char **argv) {
     std::sort(Consensusv::allMessages.begin(),
               Consensusv::allMessages.end(),
                Consensusv::compareMessages);
-
-
 
     Consensusv::startTime = Consensusv::getCurrentTimeMs();
 
