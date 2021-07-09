@@ -13,7 +13,13 @@ using namespace std;
 
 static GLfloat spin = 0.0;
 
-enum MessageType {PROPOSAL = 0, BROADCAST = 1, AUX = 2, SIG = 3, BLOCK = 4};
+
+enum MsgType {CHILD_COMPLETED = 0, PARENT_COMPLETED = 1,
+    MSG_BVB_BROADCAST = 2, MSG_AUX_BROADCAST = 3, BIN_CONSENSUS_COMMIT = 4, BIN_CONSENSUS_HISTORY_DECIDE = 5,
+    BIN_CONSENSUS_HISTORY_CC = 6, BIN_CONSENSUS_HISTORY_BVSELF = 7,
+    BIN_CONSENSUS_HISTORY_AUXSELF = 8, BIN_CONSENSUS_HISTORY_NEW_ROUND = 9,
+    MSG_BLOCK_CONSENSUS_INIT = 10, MSG_CONSENSUS_PROPOSAL = 11, MSG_BLOCK_SIGN_BROADCAST = 12,
+    MSG_BLOCK_PROPOSAL = 13, MSG_BLOCK_COMMIT = 14, MSG_DA_PROOF = 15};
 
 class Coordinate {
 public:
@@ -45,12 +51,12 @@ class Message {
 public:
 
 
-    Message(MessageType type, uint64_t start, uint64_t anEnd, uint64_t source, uint64_t destination) : type(type),
+    Message(MsgType type, uint64_t start, uint64_t anEnd, uint64_t source, uint64_t destination) : type(type),
                                                                                                     start(start),
                                                                                                     end(anEnd),
                                                                                                     source(source),destination(
                                                                                                             destination) {}
-    MessageType getType() const {
+    MsgType getType() const {
         return type;
     }
 
@@ -71,7 +77,7 @@ public:
     }
 
 private:
-    MessageType type;
+    MsgType type;
     uint64_t start;
     uint64_t end;
     uint64_t source;
@@ -200,7 +206,7 @@ public:
         float width;
         float height;
 
-        if (_message.getType() == PROPOSAL) {
+        if (_message.getType() == MSG_BLOCK_PROPOSAL) {
             width = BLOCK_WIDTH;
             height = BLOCK_HEIGHT;
         } else {
@@ -331,8 +337,8 @@ int main(int argc, char **argv) {
 
 
 
-    Consensusv::allMessages.push_back(Message(BROADCAST, 1, 10000, 1, 4));
-    Consensusv::allMessages.push_back(Message(PROPOSAL, 1, 10000, 7, 5));
+    Consensusv::allMessages.push_back(Message(MSG_AUX_BROADCAST, 1, 10000, 1, 4));
+    Consensusv::allMessages.push_back(Message(MSG_BLOCK_PROPOSAL, 1, 10000, 7, 5));
     Consensusv::allBlocks.push_back(Block(1, 1, 1));
     Consensusv::allBlocks.push_back(Block(1, 1, 2));
 
