@@ -4,6 +4,7 @@
 #include <list>
 #include <list>
 #include <iostream>
+#include <boost/filesystem.hpp>
 #include <bits/stdc++.h>
 
 #include <chrono>
@@ -13,6 +14,7 @@ using namespace std;
 
 static GLfloat spin = 0.0;
 
+namespace fs = boost::filesystem;
 
 enum MsgType {CHILD_COMPLETED = 0, PARENT_COMPLETED = 1,
     MSG_BVB_BROADCAST = 2, MSG_AUX_BROADCAST = 3, BIN_CONSENSUS_COMMIT = 4, BIN_CONSENSUS_HISTORY_DECIDE = 5,
@@ -329,6 +331,14 @@ public:
         }
     }
 
+
+    static string findDataFile() {
+        string path = "/tmp/";
+        for (const auto & entry : fs::directory_iterator(path))
+            std::cout << entry.path() << std::endl;
+    }
+
+
 };
 
 
@@ -336,6 +346,7 @@ public:
 int main(int argc, char **argv) {
 
 
+    string fileName = Consensusv::findDataFile();
 
     Consensusv::allMessages.push_back(Message(MSG_AUX_BROADCAST, 1, 10000, 1, 4));
     Consensusv::allMessages.push_back(Message(MSG_BLOCK_PROPOSAL, 1, 10000, 7, 5));
