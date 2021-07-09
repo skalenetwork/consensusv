@@ -16,12 +16,14 @@ static GLfloat spin = 0.0;
 
 namespace fs = boost::filesystem;
 
-enum MsgType {CHILD_COMPLETED = 0, PARENT_COMPLETED = 1,
+enum MsgType {
+    CHILD_COMPLETED = 0, PARENT_COMPLETED = 1,
     MSG_BVB_BROADCAST = 2, MSG_AUX_BROADCAST = 3, BIN_CONSENSUS_COMMIT = 4, BIN_CONSENSUS_HISTORY_DECIDE = 5,
     BIN_CONSENSUS_HISTORY_CC = 6, BIN_CONSENSUS_HISTORY_BVSELF = 7,
     BIN_CONSENSUS_HISTORY_AUXSELF = 8, BIN_CONSENSUS_HISTORY_NEW_ROUND = 9,
     MSG_BLOCK_CONSENSUS_INIT = 10, MSG_CONSENSUS_PROPOSAL = 11, MSG_BLOCK_SIGN_BROADCAST = 12,
-    MSG_BLOCK_PROPOSAL = 13, MSG_BLOCK_COMMIT = 14, MSG_DA_PROOF = 15};
+    MSG_BLOCK_PROPOSAL = 13, MSG_BLOCK_COMMIT = 14, MSG_DA_PROOF = 15
+};
 
 class Coordinate {
 public:
@@ -42,10 +44,10 @@ private:
 
 public:
 
-    static Coordinate computeInternalPoint(Coordinate& _c1, Coordinate& _c2, float _proportion) {
+    static Coordinate computeInternalPoint(Coordinate &_c1, Coordinate &_c2, float _proportion) {
         auto x = _c1.getX() + (_c2.getX() - _c1.getX()) * _proportion;
         auto y = _c1.getY() + (_c2.getY() - _c1.getY()) * _proportion;
-        return Coordinate(x,y);
+        return Coordinate(x, y);
     }
 };
 
@@ -54,10 +56,12 @@ public:
 
 
     Message(MsgType type, uint64_t start, uint64_t anEnd, uint64_t source, uint64_t destination) : type(type),
-                                                                                                    start(start),
-                                                                                                    end(anEnd),
-                                                                                                    source(source),destination(
-                                                                                                            destination) {}
+                                                                                                   start(start),
+                                                                                                   end(anEnd),
+                                                                                                   source(source),
+                                                                                                   destination(
+                                                                                                           destination) {}
+
     MsgType getType() const {
         return type;
     }
@@ -112,7 +116,6 @@ private:
 };
 
 
-
 class Consensusv {
 
 public:
@@ -123,7 +126,7 @@ public:
     static list<Block> allBlocks;
     static list<Block> displayedBlocks;
 
-    static uint64_t  startTime;
+    static uint64_t startTime;
 
     static bool compareMessages(Message m1, Message m2) {
         return (m1.getStart() < m2.getStart());
@@ -132,7 +135,6 @@ public:
     static bool compareBlocks(Block b1, Block b2) {
         return (b1.getStart() < b2.getStart());
     }
-
 
 
     static uint64_t getCurrentTimeMs() {
@@ -158,7 +160,7 @@ public:
     static constexpr uint64_t NODE_COUNT = 16;
 
 
-    static void drawNode(Coordinate& _c) {
+    static void drawNode(Coordinate &_c) {
         glRectf(_c.getX() - NODE_WIDTH / 2, _c.getY() - NODE_WIDTH / 2,
                 _c.getX() + NODE_WIDTH / 2, _c.getY() + NODE_WIDTH / 2);
     }
@@ -168,7 +170,7 @@ public:
         auto angle = _n * (2 * PI / NODE_COUNT);
         auto x = RADIUS * cos(angle);
         auto y = RADIUS * sin(angle);
-        return Coordinate(x,y);
+        return Coordinate(x, y);
     }
 
 
@@ -229,7 +231,6 @@ public:
         auto id = _block.getId();
 
 
-
         auto start = _block.getStart();
 
         if (_currentTime < start)
@@ -240,19 +241,16 @@ public:
         auto oppositeNodeCoordinate = computeNodeCoordinate((node + NODE_COUNT / 2) % 16);
 
         auto blockCoordinate = Coordinate::computeInternalPoint(
-                nodeCoordinate, oppositeNodeCoordinate, - 0.07);
+                nodeCoordinate, oppositeNodeCoordinate, -0.07);
 
         float width = BLOCK_WIDTH;
         float height = BLOCK_HEIGHT;
 
         glRectf(blockCoordinate.getX() - width / 2, blockCoordinate.getY()
-         + id * (height + 0.1) - height / 2,
+                                                    + id * (height + 0.1) - height / 2,
                 blockCoordinate.getX() + width / 2, blockCoordinate.getY() +
-                        + id * (height + 0.1) + height / 2);
+                                                    +id * (height + 0.1) + height / 2);
     }
-
-
-
 
 
     static void drawMessages(float _currentTime) {
@@ -273,7 +271,7 @@ public:
     }
 
     static void display(void) {
-        glClear(GL_COLOR_BUFFER_BIT |GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         //glPushMatrix();
         //glRotatef(spin, 0.0, 0.0, 1.0);
 
@@ -332,15 +330,40 @@ public:
     }
 
 
-    static string findDataFile() {
-        string path = "/tmp/";
-        for (const auto & entry : fs::directory_iterator(path))
-            std::cout << entry.path() << std::endl;
+    static bool hasEnding(std::string const &fullString, std::string const &ending) {
+        if (fullString.length() >= ending.length()) {
+            return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
+        } else {
+            return false;
+        }
     }
 
 
-};
+    static string findDataFile() {
+        string path = "/tmp/";
+        vector<string> files;
 
+
+        for (const auto &entry : fs::directory_iterator(path)) {
+
+            auto fullPath = entry.path().string();
+
+            if (hasEnding(fullPath, ".data")) {
+                files.push_back(fullPath);
+            }
+
+        }
+
+        if (files.size() == 0) {
+            cerr << "Could not find data file";
+            exit(-1);
+        }
+
+        sort(files.begin(), files.end());
+
+        return files.back();
+    }
+};
 
 
 int main(int argc, char **argv) {
