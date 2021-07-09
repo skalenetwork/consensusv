@@ -8,6 +8,7 @@
 #include <bits/stdc++.h>
 
 #include <chrono>
+#include "include/rapidjson/rapidjson.h"
 
 #define PI 3.14159265
 using namespace std;
