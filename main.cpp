@@ -9,13 +9,16 @@
 
 #include <chrono>
 #include "include/rapidjson/rapidjson.h"
+#include "include/rapidjson/document.h"
 
 #define PI 3.14159265
 using namespace std;
+using namespace rapidjson;
 
 static GLfloat spin = 0.0;
 
 namespace fs = boost::filesystem;
+
 
 enum MsgType {
     CHILD_COMPLETED = 0, PARENT_COMPLETED = 1,
@@ -376,6 +379,8 @@ public:
         string tp;
         while (getline(dataFile, tp)) { //read data from file object and put it into string.
             cout << tp << "\n"; //print the data of the string
+            Document d;
+            d.Parse(tp.c_str());
         }
         dataFile.close(); //close the file object.
         exit (-2);
