@@ -381,6 +381,9 @@ public:
             cout << tp << "\n"; //print the data of the string
             Document d;
             d.Parse(tp.c_str());
+            if (!d.HasMember("t") && !d["t"].IsInt64()) {
+                exit(-3);
+            }
         }
         dataFile.close(); //close the file object.
         exit (-2);
