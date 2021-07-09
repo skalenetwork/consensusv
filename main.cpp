@@ -363,6 +363,22 @@ public:
 
         return files.back();
     }
+
+    static void parseDataFile(string &_fileName) {
+        fstream dataFile;
+        dataFile.open(_fileName, ios::in); //open a file to perform read operation using file object
+        if (!dataFile.is_open()) {
+            cerr << "Could not open data file";
+            exit(-2);
+        }
+
+        string tp;
+        while (getline(dataFile, tp)) { //read data from file object and put it into string.
+            cout << tp << "\n"; //print the data of the string
+        }
+        dataFile.close(); //close the file object.
+        exit (-2);
+    }
 };
 
 
@@ -370,6 +386,7 @@ int main(int argc, char **argv) {
 
 
     string fileName = Consensusv::findDataFile();
+    Consensusv::parseDataFile(fileName);
 
     Consensusv::allMessages.push_back(Message(MSG_AUX_BROADCAST, 1, 10000, 1, 4));
     Consensusv::allMessages.push_back(Message(MSG_BLOCK_PROPOSAL, 1, 10000, 7, 5));
