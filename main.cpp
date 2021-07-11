@@ -368,6 +368,96 @@ public:
         return files.back();
     }
 
+    static void addMessage(Document& _d, uint64_t _type, uint64_t _beginTime) {
+        if (!_d.HasMember("f") && ! _d["f"].IsUint64()) {
+            cerr << "Incorrect format 3";
+            exit(-3);
+        }
+
+        uint64_t finishTime  = _d["f"].GetUint64();
+
+        if (!_d.HasMember("s") && ! _d["s"].IsUint64()) {
+            cerr << "Incorrect format 3";
+            exit(-3);
+        }
+
+        uint64_t source  = _d["s"].GetUint64();
+
+        if (!_d.HasMember("d") && ! _d["d"].IsUint64()) {
+            cerr << "Incorrect format 3";
+            exit(-3);
+        }
+
+        uint64_t dst  = _d["d"].GetUint64();
+
+        Message m((MsgType) _type, _beginTime, finishTime, source, dst);
+
+        allMessages.push_back(m);
+    }
+
+    static void addDAProof(Document& _d, uint64_t _type, uint64_t _beginTime) {
+        if (!_d.HasMember("f") && ! _d["f"].IsUint64()) {
+            cerr << "Incorrect format 3";
+            exit(-3);
+        }
+
+        uint64_t finishTime  = _d["f"].GetUint64();
+
+        if (!_d.HasMember("s") && ! _d["s"].IsUint64()) {
+            cerr << "Incorrect format 3";
+            exit(-3);
+        }
+
+        uint64_t source  = _d["s"].GetUint64();
+
+        if (!_d.HasMember("d") && ! _d["d"].IsUint64()) {
+            cerr << "Incorrect format 3";
+            exit(-3);
+        }
+
+        uint64_t dst  = _d["d"].GetUint64();
+
+
+
+    }
+
+    static void addBlock(Document& _d, uint64_t _type, uint64_t _beginTime) {
+        if (!_d.HasMember("s") && ! _d["s"].IsUint64()) {
+            cerr << "Incorrect format 3";
+            exit(-3);
+        }
+
+        uint64_t source  = _d["s"].GetUint64();
+
+    }
+
+    static void addProposal(Document& _d, uint64_t _type, uint64_t _beginTime) {
+        if (!_d.HasMember("f") && ! _d["f"].IsUint64()) {
+            cerr << "Incorrect format 3";
+            exit(-3);
+        }
+
+        uint64_t finishTime  = _d["f"].GetUint64();
+
+
+        if (!_d.HasMember("s") && ! _d["s"].IsUint64()) {
+            cerr << "Incorrect format 3";
+            exit(-3);
+        }
+
+        uint64_t source  = _d["s"].GetUint64();
+
+        if (!_d.HasMember("d") && ! _d["d"].IsUint64()) {
+            cerr << "Incorrect format 3";
+            exit(-3);
+        }
+
+        uint64_t dst  = _d["d"].GetUint64();
+
+
+    }
+
+
     static void parseDataFile(string &_fileName) {
         fstream dataFile;
         dataFile.open(_fileName, ios::in); //open a file to perform read operation using file object
@@ -381,12 +471,34 @@ public:
             cout << tp << "\n"; //print the data of the string
             Document d;
             d.Parse(tp.c_str());
-            if (!d.HasMember("t") && !d["t"].IsInt64()) {
+            if (!d.HasMember("t") && !d["t"].IsUint64()) {
+                cerr << "Incorrect format";
                 exit(-3);
             }
+
+            uint64_t type = d["t"].GetUint64();
+
+            if (!d.HasMember("b") && !d["b"].IsUint64()) {
+                cerr << "Incorrect format 2";
+                exit(-3);
+            }
+
+            uint64_t beginTime  = d["b"].GetUint64();
+
+
+            if (type < 13) {
+                addMessage(d, type, beginTime );
+            } else if (type == MsgType::MSG_BLOCK_PROPOSAL) {
+                addProposal(d, type, beginTime);
+            } else if (type == MsgType::MSG_BLOCK_COMMIT) {
+                addBlock(d, type, beginTime);
+            } else if (type == MsgType::MSG_DA_PROOF) {
+                addDAProof(d, type, beginTime);
+            }
+
+
         }
         dataFile.close(); //close the file object.
-        exit (-2);
     }
 };
 
