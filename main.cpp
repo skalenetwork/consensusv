@@ -49,6 +49,9 @@ private:
 public:
 
     static Coordinate computeInternalPoint(Coordinate &_c1, Coordinate &_c2, float _proportion) {
+
+
+
         auto x = _c1.getX() + (_c2.getX() - _c1.getX()) * _proportion;
         auto y = _c1.getY() + (_c2.getY() - _c1.getY()) * _proportion;
         return Coordinate(x, y);
@@ -114,7 +117,13 @@ public:
         return id;
     }
 
-    Block(uint64_t start, uint64_t node, uint64_t id) : start(start), node(node), id(id) {}
+    Block(uint64_t start, uint64_t node, uint64_t id) : start(start), node(node), id(id) {
+        if (id > 1000) {
+            cerr << "Incorrect block id " << endl;
+            exit(-1);
+        }
+
+    }
 
 private:
     uint64_t start;
@@ -161,6 +170,10 @@ public:
     static constexpr float MSG_WIDTH = 0.3;
     static constexpr float BLOCK_WIDTH = 4.0;
     static constexpr float BLOCK_HEIGHT = 2.0;
+
+
+    static constexpr float PROPOSAL_WIDTH = 1.0;
+    static constexpr float PROPOSAL_HEIGHT = 0.5;
 
 
     static constexpr float RADIUS = 30.0;
@@ -218,8 +231,8 @@ public:
         float height;
 
         if (_message.getType() == MSG_BLOCK_PROPOSAL) {
-            width = BLOCK_WIDTH;
-            height = BLOCK_HEIGHT;
+            width = PROPOSAL_WIDTH;
+            height = PROPOSAL_HEIGHT;
         } else {
             width = MSG_WIDTH;
             height = MSG_WIDTH;
@@ -234,7 +247,7 @@ public:
     static void drawBlock(const Block &_block, float _currentTime) {
 
 
-        auto node = _block.getStart();
+        auto node = _block.getNode();
         auto id = _block.getId();
 
 
@@ -243,20 +256,25 @@ public:
         if (_currentTime < start)
             return;
 
+        cerr << id << endl;
 
         auto nodeCoordinate = computeNodeCoordinate(node);
         auto oppositeNodeCoordinate = computeNodeCoordinate((node + NODE_COUNT / 2) % 16);
 
         auto blockCoordinate = Coordinate::computeInternalPoint(
-                nodeCoordinate, oppositeNodeCoordinate, -0.07);
+                nodeCoordinate, oppositeNodeCoordinate, 0.1);
 
         float width = BLOCK_WIDTH;
         float height = BLOCK_HEIGHT;
 
-        glRectf(blockCoordinate.getX() - width / 2, blockCoordinate.getY()
-                                                    + id * (height + 0.1) - height / 2,
-                blockCoordinate.getX() + width / 2, blockCoordinate.getY() +
-                                                    +id * (height + 0.1) + height / 2);
+        auto coordX = blockCoordinate.getX() - (width / 2);
+        auto coordY = blockCoordinate.getY() - (height / 2) + id * (height + 0.1);
+
+        coordY = 1 + 0.001 * coordY;
+
+        glRectf(coordX, coordY,
+                coordX + width,
+                coordY + height);
     }
 
 
@@ -270,7 +288,8 @@ public:
 
 
     static void drawBlocks(float _currentTime) {
-        glColor3f(1, 1, 0);
+        glColor3f(0.5, 0.5, 0);
+
 
         for (auto &&item : displayedBlocks) {
             drawBlock(item, _currentTime);
@@ -441,7 +460,7 @@ public:
             exit(-3);
         }
 
-        uint64_t blockId  = _d["s"].GetUint64();
+        uint64_t blockId  = _d["b"].GetUint64();
 
         allBlocks.push_back(Block(_beginTime, source, blockId));
 
@@ -527,8 +546,6 @@ int main(int argc, char **argv) {
 
     Consensusv::allMessages.push_back(Message(MSG_AUX_BROADCAST, 1, 10000, 1, 4));
     Consensusv::allMessages.push_back(Message(MSG_BLOCK_PROPOSAL, 1, 10000, 7, 5));
-    Consensusv::allBlocks.push_back(Block(1, 1, 1));
-    Consensusv::allBlocks.push_back(Block(1, 1, 2));
 
 
     Consensusv::allBlocks.sort(Consensusv::compareBlocks);
