@@ -29,6 +29,14 @@ enum MsgType {
     MSG_BLOCK_PROPOSAL = 13, MSG_BLOCK_COMMIT = 14, MSG_DA_PROOF = 15
 };
 
+
+float red[17]  = {250, 58, 117, 255, 231, 14, 93, 231, 255, 240, 217, 116, 153, 242, 224, 38, 94};
+float green[17]  = {198, 56, 112, 244, 171, 52, 142, 230, 192, 168, 131, 89, 150, 215, 187, 55, 90};
+float blue[17]  = {14, 56, 112, 203, 99, 91, 193, 230, 0, 76, 150, 116, 165, 198, 182, 85, 91};
+
+
+
+
 class Coordinate {
 public:
     Coordinate(float x, float y) : x(x), y(y) {}
@@ -117,7 +125,8 @@ public:
         return id;
     }
 
-    Block(uint64_t start, uint64_t node, uint64_t id) : start(start), node(node), id(id) {
+    Block(uint64_t start, uint64_t node,
+          uint64_t proposer, uint64_t id) : start(start), node(node), proposer(proposer), id(id) {
         if (id > 1000) {
             cerr << "Incorrect block id " << endl;
             exit(-1);
@@ -126,9 +135,17 @@ public:
     }
 
 private:
+public:
+    uint64_t getProposer() const {
+        return proposer;
+    }
+
+private:
     uint64_t start;
     uint64_t node;
+    uint64_t proposer;
     uint64_t id;
+
 };
 
 
@@ -180,7 +197,10 @@ public:
     static constexpr uint64_t NODE_COUNT = 16;
 
 
-    static void drawNode(Coordinate &_c) {
+    static void drawNode(Coordinate &_c, uint64_t _node) {
+
+        glColor3f(red[_node]/255, green[_node]/255, blue[_node] /255);
+
         glRectf(_c.getX() - NODE_WIDTH / 2, _c.getY() - NODE_WIDTH / 2,
                 _c.getX() + NODE_WIDTH / 2, _c.getY() + NODE_WIDTH / 2);
     }
@@ -196,12 +216,12 @@ public:
 
     static void drawNodeN(uint64_t _n) {
         auto c = computeNodeCoordinate(_n);
-        drawNode(c);
+        drawNode(c, _n);
     }
 
     static void drawNodes() {
         glColor3f(0, 0, 1.0);
-        for (uint64_t i = 0; i < NODE_COUNT; i++) {
+        for (uint64_t i = 1; i <= NODE_COUNT; i++) {
             drawNodeN(i);
         }
     }
@@ -238,6 +258,9 @@ public:
             height = MSG_WIDTH;
         }
 
+
+        glColor3f(red[src]/255, green[src]/255, blue[src] /255);
+
         glRectf(msgCoordinate.getX() - width / 2, msgCoordinate.getY() - height / 2,
                 msgCoordinate.getX() + width / 2, msgCoordinate.getY() + height / 2);
 
@@ -256,13 +279,11 @@ public:
         if (_currentTime < start)
             return;
 
-        cerr << id << endl;
-
         auto nodeCoordinate = computeNodeCoordinate(node);
         auto oppositeNodeCoordinate = computeNodeCoordinate((node + NODE_COUNT / 2) % 16);
 
         auto blockCoordinate = Coordinate::computeInternalPoint(
-                nodeCoordinate, oppositeNodeCoordinate, 0.1);
+                nodeCoordinate, oppositeNodeCoordinate, - 0.1);
 
         float width = BLOCK_WIDTH;
         float height = BLOCK_HEIGHT;
@@ -270,7 +291,10 @@ public:
         auto coordX = blockCoordinate.getX() - (width / 2);
         auto coordY = blockCoordinate.getY() - (height / 2) + id * (height + 0.1);
 
-        coordY = 1 + 0.001 * coordY;
+
+        auto proposer = _block.getProposer();
+
+        glColor3f(red[proposer]/255, green[proposer]/255, blue[proposer] /255);
 
         glRectf(coordX, coordY,
                 coordX + width,
@@ -462,7 +486,16 @@ public:
 
         uint64_t blockId  = _d["i"].GetUint64();
 
-        allBlocks.push_back(Block(_beginTime, source, blockId));
+
+        if (!_d.HasMember("p") && ! _d["p"].IsUint64()) {
+            cerr << "Incorrect format 3";
+            exit(-3);
+        }
+
+        uint64_t proposer  = _d["p"].GetUint64();
+
+
+        allBlocks.push_back(Block(_beginTime, source, proposer, blockId));
 
     }
 
