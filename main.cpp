@@ -460,7 +460,7 @@ public:
             exit(-3);
         }
 
-        uint64_t blockId  = _d["b"].GetUint64();
+        uint64_t blockId  = _d["i"].GetUint64();
 
         allBlocks.push_back(Block(_beginTime, source, blockId));
 
