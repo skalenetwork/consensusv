@@ -577,10 +577,6 @@ int main(int argc, char **argv) {
     string fileName = Consensusv::findDataFile();
     Consensusv::parseDataFile(fileName);
 
-    Consensusv::allMessages.push_back(Message(MSG_AUX_BROADCAST, 1, 10000, 1, 4));
-    Consensusv::allMessages.push_back(Message(MSG_BLOCK_PROPOSAL, 1, 10000, 7, 5));
-
-
     Consensusv::allBlocks.sort(Consensusv::compareBlocks);
     Consensusv::allMessages.sort(Consensusv::compareMessages);
 
@@ -588,8 +584,7 @@ int main(int argc, char **argv) {
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(250, 250);
-    glutInitWindowSize(100, 100);
+    glutInitWindowSize(1000, 1000);
     glutCreateWindow("Consensusv");
     Consensusv::init();
     glutDisplayFunc(Consensusv::display);
