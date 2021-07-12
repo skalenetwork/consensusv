@@ -327,10 +327,14 @@ public:
             auto msg = allMessages.front();
             allMessages.pop_front();
             displayedMessages.push_back(msg);
+        }
+
+        while (allBlocks.size() > 0 && allBlocks.front().getStart() <= _time) {
             auto block = allBlocks.front();
             allBlocks.pop_front();
             displayedBlocks.push_back(block);
         }
+
     }
 
 
