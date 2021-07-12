@@ -64,7 +64,10 @@ public:
                                                                                                    end(anEnd),
                                                                                                    source(source),
                                                                                                    destination(
-                                                                                                           destination) {}
+                                                                                                           destination) {
+        if (end - start < 1000)
+            end = start + 1000;
+    }
 
     MsgType getType() const {
         return type;
@@ -155,7 +158,7 @@ public:
 
 
     static constexpr float NODE_WIDTH = 2.0;
-    static constexpr float MSG_WIDTH = 1.0;
+    static constexpr float MSG_WIDTH = 0.3;
     static constexpr float BLOCK_WIDTH = 4.0;
     static constexpr float BLOCK_HEIGHT = 2.0;
 
@@ -433,6 +436,15 @@ public:
 
         uint64_t source  = _d["s"].GetUint64();
 
+        if (!_d.HasMember("b") && ! _d["b"].IsUint64()) {
+            cerr << "Incorrect format 3";
+            exit(-3);
+        }
+
+        uint64_t blockId  = _d["s"].GetUint64();
+
+        allBlocks.push_back(Block(_beginTime, source, blockId));
+
     }
 
     static void addProposal(Document& _d, uint64_t _type, uint64_t _beginTime) {
@@ -493,11 +505,11 @@ public:
             if (type < 13) {
                 addMessage(d, type, beginTime );
             } else if (type == MsgType::MSG_BLOCK_PROPOSAL) {
-                addProposal(d, type, beginTime);
+                addMessage(d, type, beginTime);
             } else if (type == MsgType::MSG_BLOCK_COMMIT) {
                 addBlock(d, type, beginTime);
             } else if (type == MsgType::MSG_DA_PROOF) {
-                addDAProof(d, type, beginTime);
+                addMessage(d, type, beginTime);
             }
 
 
