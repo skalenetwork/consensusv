@@ -455,7 +455,7 @@ public:
 
         uint64_t source  = _d["s"].GetUint64();
 
-        if (!_d.HasMember("b") && ! _d["b"].IsUint64()) {
+        if (!_d.HasMember("i") && ! _d["i"].IsUint64()) {
             cerr << "Incorrect format 3";
             exit(-3);
         }
