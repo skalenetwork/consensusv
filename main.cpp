@@ -16,6 +16,7 @@ using namespace std;
 using namespace rapidjson;
 
 static GLfloat spin = 0.0;
+static uint64_t VISUALIZATION_TYPE = 1;
 
 namespace fs = boost::filesystem;
 
@@ -30,11 +31,9 @@ enum MsgType {
 };
 
 
-float red[17]  = {250, 58, 117, 255, 231, 14, 93, 231, 255, 240, 217, 116, 153, 242, 224, 38, 94};
-float green[17]  = {198, 56, 112, 244, 171, 52, 142, 230, 192, 168, 131, 89, 150, 215, 187, 55, 90};
-float blue[17]  = {14, 56, 112, 203, 99, 91, 193, 230, 0, 76, 150, 116, 165, 198, 182, 85, 91};
-
-
+float red[17] = {250, 58, 117, 255, 231, 14, 93, 231, 255, 240, 217, 116, 153, 242, 224, 38, 94};
+float green[17] = {198, 56, 112, 244, 171, 52, 142, 230, 192, 168, 131, 89, 150, 215, 187, 55, 90};
+float blue[17] = {14, 56, 112, 203, 99, 91, 193, 230, 0, 76, 150, 116, 165, 198, 182, 85, 91};
 
 
 class Coordinate {
@@ -59,7 +58,6 @@ public:
     static Coordinate computeInternalPoint(Coordinate &_c1, Coordinate &_c2, float _proportion) {
 
 
-
         auto x = _c1.getX() + (_c2.getX() - _c1.getX()) * _proportion;
         auto y = _c1.getY() + (_c2.getY() - _c1.getY()) * _proportion;
         return Coordinate(x, y);
@@ -70,12 +68,13 @@ class Message {
 public:
 
 
-    Message(MsgType type, uint64_t start, uint64_t anEnd, uint64_t source, uint64_t destination) : type(type),
-                                                                                                   start(start),
-                                                                                                   end(anEnd),
-                                                                                                   source(source),
-                                                                                                   destination(
-                                                                                                           destination) {
+    Message(MsgType type, uint64_t start, uint64_t anEnd, uint64_t source, uint64_t destination,
+            uint64_t value) : type(type),
+                              start(start),
+                              end(anEnd),
+                              source(source),
+                              destination(destination),
+                              value(value) {
         if (end - start < 1000)
             end = start + 1000;
     }
@@ -100,12 +99,17 @@ public:
         return destination;
     }
 
+    uint64_t getValue() const {
+        return value;
+    }
+
 private:
     MsgType type;
     uint64_t start;
     uint64_t end;
     uint64_t source;
     uint64_t destination;
+    uint64_t value;
 };
 
 
@@ -199,7 +203,7 @@ public:
 
     static void drawNode(Coordinate &_c, uint64_t _node) {
 
-        glColor3f(red[_node]/255, green[_node]/255, blue[_node] /255);
+        glColor3f(red[_node] / 255, green[_node] / 255, blue[_node] / 255);
 
         glRectf(_c.getX() - NODE_WIDTH / 2, _c.getY() - NODE_WIDTH / 2,
                 _c.getX() + NODE_WIDTH / 2, _c.getY() + NODE_WIDTH / 2);
@@ -259,7 +263,8 @@ public:
         }
 
 
-        glColor3f(red[src]/255, green[src]/255, blue[src] /255);
+        glColor3f(red[src] / 255, green[src] / 255, blue[src] / 255);
+
 
         glRectf(msgCoordinate.getX() - width / 2, msgCoordinate.getY() - height / 2,
                 msgCoordinate.getX() + width / 2, msgCoordinate.getY() + height / 2);
@@ -283,7 +288,7 @@ public:
         auto oppositeNodeCoordinate = computeNodeCoordinate((node + NODE_COUNT / 2) % 16);
 
         auto blockCoordinate = Coordinate::computeInternalPoint(
-                nodeCoordinate, oppositeNodeCoordinate, - 0.1);
+                nodeCoordinate, oppositeNodeCoordinate, -0.1);
 
         float width = BLOCK_WIDTH;
         float height = BLOCK_HEIGHT;
@@ -294,7 +299,7 @@ public:
 
         auto proposer = _block.getProposer();
 
-        glColor3f(red[proposer]/255, green[proposer]/255, blue[proposer] /255);
+        glColor3f(red[proposer] / 255, green[proposer] / 255, blue[proposer] / 255);
 
         glRectf(coordX, coordY,
                 coordX + width,
@@ -355,7 +360,8 @@ public:
         switch (button) {
             case GLUT_LEFT_BUTTON:
                 if (state == GLUT_DOWN)
-                    glutIdleFunc(spinDisplay);
+                    Consensusv::startTime = getCurrentTimeMs();
+                glutIdleFunc(spinDisplay);
                 break;
             case GLUT_MIDDLE_BUTTON:
                 if (state == GLUT_DOWN)
@@ -418,109 +424,116 @@ public:
         return files.back();
     }
 
-    static void addMessage(Document& _d, uint64_t _type, uint64_t _beginTime) {
-        if (!_d.HasMember("f") && ! _d["f"].IsUint64()) {
+    static void addMessage(Document &_d, uint64_t _type, uint64_t _beginTime) {
+        if (!_d.HasMember("f") && !_d["f"].IsUint64()) {
             cerr << "Incorrect format 3";
             exit(-3);
         }
 
-        uint64_t finishTime  = _d["f"].GetUint64();
+        uint64_t finishTime = _d["f"].GetUint64();
 
-        if (!_d.HasMember("s") && ! _d["s"].IsUint64()) {
+        if (!_d.HasMember("s") && !_d["s"].IsUint64()) {
             cerr << "Incorrect format 3";
             exit(-3);
         }
 
-        uint64_t source  = _d["s"].GetUint64();
+        uint64_t source = _d["s"].GetUint64();
 
-        if (!_d.HasMember("d") && ! _d["d"].IsUint64()) {
+        if (!_d.HasMember("d") && !_d["d"].IsUint64()) {
             cerr << "Incorrect format 3";
             exit(-3);
         }
 
-        uint64_t dst  = _d["d"].GetUint64();
+        uint64_t dst = _d["d"].GetUint64();
 
-        Message m((MsgType) _type, _beginTime, finishTime, source, dst);
+        if (!_d.HasMember("v") && !_d["v"].IsUint64()) {
+            cerr << "Incorrect format 3";
+            exit(-3);
+        }
+
+        uint64_t v = _d["v"].GetUint64();
+
+
+        Message m((MsgType) _type, _beginTime, finishTime, source, dst, v);
 
         allMessages.push_back(m);
     }
 
-    static void addDAProof(Document& _d, uint64_t _type, uint64_t _beginTime) {
-        if (!_d.HasMember("f") && ! _d["f"].IsUint64()) {
+    static void addDAProof(Document &_d, uint64_t _type, uint64_t _beginTime) {
+        if (!_d.HasMember("f") && !_d["f"].IsUint64()) {
             cerr << "Incorrect format 3";
             exit(-3);
         }
 
-        uint64_t finishTime  = _d["f"].GetUint64();
+        uint64_t finishTime = _d["f"].GetUint64();
 
-        if (!_d.HasMember("s") && ! _d["s"].IsUint64()) {
+        if (!_d.HasMember("s") && !_d["s"].IsUint64()) {
             cerr << "Incorrect format 3";
             exit(-3);
         }
 
-        uint64_t source  = _d["s"].GetUint64();
+        uint64_t source = _d["s"].GetUint64();
 
-        if (!_d.HasMember("d") && ! _d["d"].IsUint64()) {
+        if (!_d.HasMember("d") && !_d["d"].IsUint64()) {
             cerr << "Incorrect format 3";
             exit(-3);
         }
 
-        uint64_t dst  = _d["d"].GetUint64();
-
+        uint64_t dst = _d["d"].GetUint64();
 
 
     }
 
-    static void addBlock(Document& _d, uint64_t _type, uint64_t _beginTime) {
-        if (!_d.HasMember("s") && ! _d["s"].IsUint64()) {
+    static void addBlock(Document &_d, uint64_t _type, uint64_t _beginTime) {
+        if (!_d.HasMember("s") && !_d["s"].IsUint64()) {
             cerr << "Incorrect format 3";
             exit(-3);
         }
 
-        uint64_t source  = _d["s"].GetUint64();
+        uint64_t source = _d["s"].GetUint64();
 
-        if (!_d.HasMember("i") && ! _d["i"].IsUint64()) {
+        if (!_d.HasMember("i") && !_d["i"].IsUint64()) {
             cerr << "Incorrect format 3";
             exit(-3);
         }
 
-        uint64_t blockId  = _d["i"].GetUint64();
+        uint64_t blockId = _d["i"].GetUint64();
 
 
-        if (!_d.HasMember("p") && ! _d["p"].IsUint64()) {
+        if (!_d.HasMember("p") && !_d["p"].IsUint64()) {
             cerr << "Incorrect format 3";
             exit(-3);
         }
 
-        uint64_t proposer  = _d["p"].GetUint64();
+        uint64_t proposer = _d["p"].GetUint64();
 
 
         allBlocks.push_back(Block(_beginTime, source, proposer, blockId));
 
     }
 
-    static void addProposal(Document& _d, uint64_t _type, uint64_t _beginTime) {
-        if (!_d.HasMember("f") && ! _d["f"].IsUint64()) {
+    static void addProposal(Document &_d, uint64_t _type, uint64_t _beginTime) {
+        if (!_d.HasMember("f") && !_d["f"].IsUint64()) {
             cerr << "Incorrect format 3";
             exit(-3);
         }
 
-        uint64_t finishTime  = _d["f"].GetUint64();
+        uint64_t finishTime = _d["f"].GetUint64();
 
 
-        if (!_d.HasMember("s") && ! _d["s"].IsUint64()) {
+        if (!_d.HasMember("s") && !_d["s"].IsUint64()) {
             cerr << "Incorrect format 3";
             exit(-3);
         }
 
-        uint64_t source  = _d["s"].GetUint64();
+        uint64_t source = _d["s"].GetUint64();
 
-        if (!_d.HasMember("d") && ! _d["d"].IsUint64()) {
+        if (!_d.HasMember("d") && !_d["d"].IsUint64()) {
             cerr << "Incorrect format 3";
             exit(-3);
         }
 
-        uint64_t dst  = _d["d"].GetUint64();
+        uint64_t dst = _d["d"].GetUint64();
 
 
     }
@@ -551,11 +564,11 @@ public:
                 exit(-3);
             }
 
-            uint64_t beginTime  = d["b"].GetUint64();
+            uint64_t beginTime = d["b"].GetUint64();
 
 
             if (type < 13) {
-                addMessage(d, type, beginTime );
+                addMessage(d, type, beginTime);
             } else if (type == MsgType::MSG_BLOCK_PROPOSAL) {
                 addMessage(d, type, beginTime);
             } else if (type == MsgType::MSG_BLOCK_COMMIT) {
@@ -573,6 +586,7 @@ public:
 
 int main(int argc, char **argv) {
 
+    VISUALIZATION_TYPE = 2;
 
     string fileName = Consensusv::findDataFile();
     Consensusv::parseDataFile(fileName);
